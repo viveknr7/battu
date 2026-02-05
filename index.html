@@ -10,24 +10,29 @@
 
   <style>
     :root {
-      --bg1: #ffd6e7;
-      --bg2: #ffeef6;
-      --card: #ffffffcc;
+      --card: rgba(255,255,255,0.92);
       --yes: #ff3b7a;
       --yesHover: #ff1f68;
     }
 
     * { box-sizing: border-box; }
 
+    /* ---------- BACKGROUND FIXED ---------- */
     body {
       margin: 0;
       min-height: 100svh;
       display: grid;
       place-items: center;
-      background: url("bg1.jpeg") center / cover no-repeat;
       font-family: system-ui, sans-serif;
       overflow: hidden;
       padding: 16px;
+
+      background:
+        linear-gradient(
+          rgba(255,214,231,0.88),
+          rgba(255,214,231,0.88)
+        ),
+        url("bg1.jpeg") center / cover no-repeat;
     }
 
     /* FULL-SCREEN CONFETTI CANVAS */
@@ -116,10 +121,13 @@
       margin: 10px 0;
     }
 
-    .fireworks {
+    /* ---------- PLACEHOLDER IMAGE ---------- */
+    .celebrate-img {
       width: min(380px, 90vw);
-      margin: 0 auto;
+      border-radius: 18px;
+      margin: 12px auto 0;
       display: block;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
     }
 
     @keyframes pop {
@@ -133,7 +141,8 @@
   <canvas id="confettiCanvas"></canvas>
 
   <main class="card">
-    <!-- ANIMAL WITH HEART -->
+
+    <!-- ANIMAL SVG -->
     <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="fur" x1="0" x2="1">
@@ -158,17 +167,8 @@
                C140 210 90 180 90 120Z"
             fill="url(#fur)"/>
 
-      <path d="M110 92 L95 55 L140 78 Z" fill="#f2a97b"/>
-      <path d="M270 92 L285 55 L240 78 Z" fill="#f2a97b"/>
-
       <circle cx="160" cy="130" r="8"/>
       <circle cx="220" cy="130" r="8"/>
-
-      <path d="M190 144 C186 144 182 148 182 152
-               C182 160 190 164 190 170
-               C190 164 198 160 198 152
-               C198 148 194 144 190 144Z"
-            fill="#ff7aa2"/>
     </svg>
 
     <h1>Aditi will you be my valentine?</h1>
@@ -178,17 +178,21 @@
       <button id="noBtn">No</button>
     </section>
 
-    <!-- HINT -->
     <div class="hint" id="hint">“No” seems a bit shy 😈</div>
 
+    <!-- RESULT -->
     <section class="result" id="result">
       <h2>YAY! 🎉</h2>
+
+      <!-- 🔽 PLACE YOUR IMAGE HERE -->
+      <!-- Replace celebrate.jpg with your own image -->
       <img
-        class="fireworks"
-        src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
-        alt="Fireworks"
+        src="bg2.jpeg"
+        alt="Celebration"
+        class="celebrate-img"
       />
     </section>
+
   </main>
 
   <script>
@@ -197,21 +201,16 @@
     const noBtn = document.getElementById("noBtn");
     const result = document.getElementById("result");
     const hint = document.getElementById("hint");
-
-    /* ---------- CONFETTI ---------- */
     const confettiCanvas = document.getElementById("confettiCanvas");
 
     function resizeConfettiCanvas() {
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
-      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
-      confettiCanvas.style.width = "100vw";
-      confettiCanvas.style.height = "100vh";
+      confettiCanvas.width = window.innerWidth * dpr;
+      confettiCanvas.height = window.innerHeight * dpr;
     }
 
     resizeConfettiCanvas();
     window.addEventListener("resize", resizeConfettiCanvas);
-    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
 
     const confettiInstance = confetti.create(confettiCanvas, {
       resize: false,
@@ -220,7 +219,6 @@
 
     function fullScreenConfetti() {
       const end = Date.now() + 1600;
-
       (function frame() {
         confettiInstance({
           particleCount: 12,
@@ -231,26 +229,14 @@
         });
         if (Date.now() < end) requestAnimationFrame(frame);
       })();
-
-      setTimeout(() => {
-        confettiInstance({
-          particleCount: 300,
-          spread: 140,
-          startVelocity: 60,
-          ticks: 220,
-          origin: { x: 0.5, y: 0.55 }
-        });
-      }, 300);
     }
 
-    /* ---------- YES BUTTON GROWS ---------- */
     let yesScale = 1;
     function growYes() {
       yesScale = Math.min(2.2, yesScale + 0.1);
       yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
     }
 
-    /* ---------- NO BUTTON RUNS AWAY ---------- */
     function clamp(n, min, max) {
       return Math.max(min, Math.min(max, n));
     }
@@ -258,23 +244,15 @@
     function moveNo(px, py) {
       const z = zone.getBoundingClientRect();
       const b = noBtn.getBoundingClientRect();
-
       let dx = (b.left + b.width / 2) - px;
       let dy = (b.top + b.height / 2) - py;
       let mag = Math.hypot(dx, dy) || 1;
-      dx /= mag;
-      dy /= mag;
-
+      dx /= mag; dy /= mag;
       let newLeft = (b.left - z.left) + dx * 150;
       let newTop  = (b.top - z.top) + dy * 150;
-
-      newLeft = clamp(newLeft, 0, z.width - b.width);
-      newTop  = clamp(newTop, 0, z.height - b.height);
-
-      noBtn.style.left = newLeft + "px";
-      noBtn.style.top = newTop + "px";
+      noBtn.style.left = clamp(newLeft, 0, z.width - b.width) + "px";
+      noBtn.style.top  = clamp(newTop, 0, z.height - b.height) + "px";
       noBtn.style.transform = "none";
-
       growYes();
     }
 
@@ -287,18 +265,12 @@
       if (d < 140) moveNo(e.clientX, e.clientY);
     });
 
-    noBtn.addEventListener("click", e => e.preventDefault());
-
-    /* ---------- YES CLICK ---------- */
     yesBtn.addEventListener("click", () => {
       zone.style.display = "none";
-      hint.style.display = "none";     // HIDE THE HINT
+      hint.style.display = "none";
       result.style.display = "block";
-      resizeConfettiCanvas();
       fullScreenConfetti();
     });
   </script>
 </body>
 </html>
-
-
